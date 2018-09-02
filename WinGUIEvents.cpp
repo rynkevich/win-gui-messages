@@ -1,6 +1,15 @@
 #include <windows.h>
 
+#define MENU_ITEM_HELP 0x01
+#define MENU_ITEM_AUTHOR 0x02
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+VOID AddMenus(HWND);
+
+LPCWSTR lpszHelpMenuItemTitle = L"Help";
+LPCWSTR lpszAuthorMenuItemTitle = L"Author";
+
+HMENU g_hMenu;
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -9,8 +18,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	LPCWSTR lpszErrorCaption = L"Error";
 	LPCWSTR lpszWndClassName = L"WinGUIEventsMainWindow";
 	LPCWSTR lpszWndTitle = L"Windows GUI Events Lab";
-	UINT iWndWidth = 1000;
-	UINT iWndHeight = 500;
+	CONST UINT iWndWidth = 1000;
+	CONST UINT iWndHeight = 500;
 
 	WNDCLASS wndc = { 0 };
 	wndc.style = CS_HREDRAW | CS_VREDRAW;
@@ -48,16 +57,21 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	LPCWSTR lpszHelloWorld = L"Hello, World!";
-
-	PAINTSTRUCT ps;
-	HDC hdc;
+	LPCWSTR lpszAboutAuthor = L"Arseni Rynkevich\r\nStudent group ¹651003\r\nhttps://github.com/NRGb3nder";
+	LPCWSTR lpszHelp = L"No help here right now";
 
 	switch (message) {
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		TextOut(hdc, 10, 10, lpszHelloWorld, wcslen(lpszHelloWorld));
-		EndPaint(hWnd, &ps);
+	case WM_COMMAND:
+		switch (wParam) {
+		case MENU_ITEM_HELP:
+			MessageBox(NULL, lpszHelp, lpszHelpMenuItemTitle, NULL);
+			break;
+		case MENU_ITEM_AUTHOR:
+			MessageBox(NULL, lpszAboutAuthor, lpszAuthorMenuItemTitle, NULL);
+			break;
+		}
+	case WM_CREATE:
+		AddMenus(hWnd);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -67,4 +81,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	return 0;
+}
+
+VOID AddMenus(HWND hWnd)
+{
+	g_hMenu = CreateMenu();
+	AppendMenu(g_hMenu, MF_STRING, MENU_ITEM_HELP, lpszHelpMenuItemTitle);
+	AppendMenu(g_hMenu, MF_STRING, MENU_ITEM_AUTHOR, lpszAuthorMenuItemTitle);
+	SetMenu(hWnd, g_hMenu);
 }
