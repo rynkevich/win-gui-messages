@@ -1,26 +1,35 @@
 #include <windows.h>
 
-#define MENU_ITEM_HELP 0x01
-#define MENU_ITEM_AUTHOR 0x02
+#define E_IMAGE_NOT_LOADED L"Can't load image"
+#define ERROR_CAPTION L"Error"
+
+#define WINDOW_CLASS_NAME L"WinGUIEventsMainWindow"
+#define WINDOW_TITLE L"Windows GUI Events Lab"
+#define DEFAULT_WINDOW_WIDTH 1000
+#define DEFAULT_WINDOW_HEIGHT 500
+
+#define HELP_MENU_ITEM 0x01
+#define AUTHOR_MENU_ITEM 0x02
+#define HELP_MENU_ITEM_TITLE L"Help"
+#define AUTHOR_MENU_ITEM_TITLE L"Author"
+
+#define TEXT_HELP L"No help here right now"
+#define TEXT_ABOUT_AUTHOR L"Arseni Rynkevich\r\nStudent group ¹651003\r\nhttps://github.com/NRGb3nder"
+
+#define SPRITE_PATH L"sprite.bmp"
+
+#define MASK_TRANSPARENT RGB(255, 0, 255)
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 VOID AddMenus(HWND);
+BOOL LoadSprite();
+VOID DrawSprite(HWND hWnd);
 
-LPCWSTR lpszHelpMenuItemTitle = L"Help";
-LPCWSTR lpszAuthorMenuItemTitle = L"Author";
+HMENU hMenu;
+HBITMAP hBitmap;
 
-HMENU g_hMenu;
-
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, INT nCmdShow)
 {
-	LPCWSTR e_lpszRegisterClassFailed = L"Call to RegisterClass failed.";
-	LPCWSTR e_lpszCreateWindowFailed = L"Call to CreateWindow failed.";
-	LPCWSTR lpszErrorCaption = L"Error";
-	LPCWSTR lpszWndClassName = L"WinGUIEventsMainWindow";
-	LPCWSTR lpszWndTitle = L"Windows GUI Events Lab";
-	CONST UINT iWndWidth = 1000;
-	CONST UINT iWndHeight = 500;
-
 	WNDCLASS wndc = { 0 };
 	wndc.style = CS_HREDRAW | CS_VREDRAW;
 	wndc.lpfnWndProc = WndProc;
@@ -28,20 +37,12 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	wndc.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLICATION));
 	wndc.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-	wndc.hInstance = hInstance;
-	wndc.lpszClassName = lpszWndClassName;
+	wndc.lpszClassName = WINDOW_CLASS_NAME;
 
-	if (!RegisterClass(&wndc)) {
-		MessageBox(NULL, e_lpszRegisterClassFailed, lpszErrorCaption, NULL);
-		return 1;
-	}
+	RegisterClass(&wndc);
 
-	HWND hWnd = CreateWindow(lpszWndClassName, lpszWndTitle, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, iWndWidth, iWndHeight, NULL, NULL, hInstance, NULL);
-	if (!hWnd) {
-		MessageBox(NULL, e_lpszCreateWindowFailed, lpszErrorCaption, NULL);
-		return 1;
-	}
+	HWND hWnd = CreateWindow(WINDOW_CLASS_NAME, WINDOW_TITLE, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, NULL, NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
@@ -52,25 +53,30 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		DispatchMessage(&msg);
 	}
 
-	return 0;
+	return msg.wParam;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	LPCWSTR lpszAboutAuthor = L"Arseni Rynkevich\r\nStudent group ¹651003\r\nhttps://github.com/NRGb3nder";
-	LPCWSTR lpszHelp = L"No help here right now";
 
 	switch (message) {
+	case WM_PAINT: case WM_SIZING:
+		DrawSprite(hWnd);
+		break;
 	case WM_COMMAND:
 		switch (wParam) {
-		case MENU_ITEM_HELP:
-			MessageBox(NULL, lpszHelp, lpszHelpMenuItemTitle, NULL);
+		case HELP_MENU_ITEM:
+			MessageBox(NULL, TEXT_HELP, HELP_MENU_ITEM_TITLE, MB_OK);
 			break;
-		case MENU_ITEM_AUTHOR:
-			MessageBox(NULL, lpszAboutAuthor, lpszAuthorMenuItemTitle, NULL);
+		case AUTHOR_MENU_ITEM:
+			MessageBox(NULL, TEXT_ABOUT_AUTHOR, AUTHOR_MENU_ITEM_TITLE, MB_OK);
 			break;
 		}
 	case WM_CREATE:
+		if (!LoadSprite()) {
+			MessageBox(NULL, E_IMAGE_NOT_LOADED, ERROR_CAPTION, MB_OK);
+			PostQuitMessage(0);
+		}
 		AddMenus(hWnd);
 		break;
 	case WM_DESTROY:
@@ -85,8 +91,38 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 VOID AddMenus(HWND hWnd)
 {
-	g_hMenu = CreateMenu();
-	AppendMenu(g_hMenu, MF_STRING, MENU_ITEM_HELP, lpszHelpMenuItemTitle);
-	AppendMenu(g_hMenu, MF_STRING, MENU_ITEM_AUTHOR, lpszAuthorMenuItemTitle);
-	SetMenu(hWnd, g_hMenu);
+	hMenu = CreateMenu();
+	AppendMenu(hMenu, MF_STRING, HELP_MENU_ITEM, HELP_MENU_ITEM_TITLE);
+	AppendMenu(hMenu, MF_STRING, AUTHOR_MENU_ITEM, AUTHOR_MENU_ITEM_TITLE);
+	SetMenu(hWnd, hMenu);
+}
+
+
+BOOL LoadSprite()
+{
+	return (BOOL)(hBitmap = (HBITMAP)LoadImage(NULL, SPRITE_PATH, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE));
+}
+
+VOID DrawSprite(HWND hWnd)
+{
+	PAINTSTRUCT ps;
+	HDC hWndDc;
+	HDC hMemDc;
+	BITMAP bmp;
+	HBITMAP hOldBmp;
+	RECT wndRect;
+
+	GetClientRect(hWnd, &wndRect);
+	hWndDc = BeginPaint(hWnd, &ps);
+
+	hMemDc = CreateCompatibleDC(hWndDc);
+	GetObject(hBitmap, sizeof(BITMAP), &bmp);
+	hOldBmp = (HBITMAP)SelectObject(hMemDc, hBitmap);
+	TransparentBlt(hWndDc, (wndRect.right - wndRect.left - bmp.bmWidth) / 2, (wndRect.bottom - wndRect.top - bmp.bmHeight) / 2,
+		bmp.bmWidth, bmp.bmHeight, hMemDc, 0, 0, bmp.bmWidth, bmp.bmHeight, MASK_TRANSPARENT);
+	SelectObject(hMemDc, hOldBmp);
+	DeleteDC(hMemDc);
+	DeleteObject(hOldBmp);
+
+	EndPaint(hWnd, &ps);
 }
