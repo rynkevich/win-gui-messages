@@ -114,6 +114,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         lpMMI = (LPMINMAXINFO)lParam;
         lpMMI->ptMinTrackSize.x = MIN_WINDOW_WIDTH;
         lpMMI->ptMinTrackSize.y = MIN_WINDOW_HEIGHT;
+        break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
