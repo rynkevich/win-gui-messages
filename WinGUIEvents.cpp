@@ -18,15 +18,19 @@
 
 #define SPRITE_PATH L"sprite.bmp"
 
+#define SPRITE_MOVEMENT_STEP 5
 #define MASK_TRANSPARENT RGB(255, 0, 255)
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-VOID AddMenus(HWND);
+VOID AddMenu(HWND);
 BOOL LoadSprite();
-VOID DrawSprite(HWND hWnd);
+VOID DrawSprite(HWND);
 
 HMENU hMenu;
 HBITMAP hBitmap;
+
+INT xSpriteOffset = 0;
+INT ySpriteOffset = 0;
 
 INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, INT nCmdShow)
 {
@@ -41,7 +45,7 @@ INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	RegisterClass(&wndc);
 
-	HWND hWnd = CreateWindow(WINDOW_CLASS_NAME, WINDOW_TITLE, WS_OVERLAPPEDWINDOW,
+	HWND hWnd = CreateWindow(WINDOW_CLASS_NAME, WINDOW_TITLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT, CW_USEDEFAULT, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, NULL, NULL, hInstance, NULL);
 
 	ShowWindow(hWnd, nCmdShow);
@@ -58,10 +62,20 @@ INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	RECT wndRect;
 
 	switch (message) {
-	case WM_PAINT: case WM_SIZING:
+	case WM_PAINT:
 		DrawSprite(hWnd);
+		break;
+	case WM_MOUSEWHEEL:
+		if (GET_KEYSTATE_WPARAM(wParam) == MK_SHIFT) {
+			xSpriteOffset += (GET_WHEEL_DELTA_WPARAM(wParam) > 0) ? SPRITE_MOVEMENT_STEP : -SPRITE_MOVEMENT_STEP;
+		} else {
+			ySpriteOffset += (GET_WHEEL_DELTA_WPARAM(wParam) > 0) ? SPRITE_MOVEMENT_STEP : -SPRITE_MOVEMENT_STEP;
+		}
+		GetClientRect(hWnd, &wndRect);
+		InvalidateRect(hWnd, &wndRect, TRUE);
 		break;
 	case WM_COMMAND:
 		switch (wParam) {
@@ -77,7 +91,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			MessageBox(NULL, E_IMAGE_NOT_LOADED, ERROR_CAPTION, MB_OK);
 			PostQuitMessage(0);
 		}
-		AddMenus(hWnd);
+		AddMenu(hWnd);
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -89,7 +103,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-VOID AddMenus(HWND hWnd)
+VOID AddMenu(HWND hWnd)
 {
 	hMenu = CreateMenu();
 	AppendMenu(hMenu, MF_STRING, HELP_MENU_ITEM, HELP_MENU_ITEM_TITLE);
@@ -118,7 +132,9 @@ VOID DrawSprite(HWND hWnd)
 	hMemDc = CreateCompatibleDC(hWndDc);
 	GetObject(hBitmap, sizeof(BITMAP), &bmp);
 	hOldBmp = (HBITMAP)SelectObject(hMemDc, hBitmap);
-	TransparentBlt(hWndDc, (wndRect.right - wndRect.left - bmp.bmWidth) / 2, (wndRect.bottom - wndRect.top - bmp.bmHeight) / 2,
+	TransparentBlt(hWndDc, 
+		((wndRect.right - wndRect.left - bmp.bmWidth) / 2) + xSpriteOffset, 
+		((wndRect.bottom - wndRect.top - bmp.bmHeight) / 2) + ySpriteOffset,
 		bmp.bmWidth, bmp.bmHeight, hMemDc, 0, 0, bmp.bmWidth, bmp.bmHeight, MASK_TRANSPARENT);
 	SelectObject(hMemDc, hOldBmp);
 	DeleteDC(hMemDc);
