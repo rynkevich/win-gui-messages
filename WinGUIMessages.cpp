@@ -24,7 +24,7 @@
 #define ELLIPSE_MENU_ITEM_TITLE L"Ellipse"
 #define SPRITE_MENU_ITEM_TITLE L"Custom sprite"
 
-#define TEXT_HELP L"Use MOUSE WHEEL and SHIFT to move object.\r\nObject type can be changed in menu."
+#define TEXT_HELP L"Use MOUSE WHEEL and SHIFT or ARROW KEYS to move object.\r\nObject type can be changed in menu."
 #define TEXT_ABOUT_AUTHOR L"Arseni Rynkevich\r\nStudent group ¹651003\r\nhttps://github.com/NRGb3nder"
 
 #define SPRITE_PATH L"sprite.bmp"
@@ -36,7 +36,7 @@
 #define MOVE_RIGHT 0x04
 #define OBJECT_MOVEMENT_STEP 5
 #define IDT_SPRITE_TIMER 0xFF
-#define OBJECT_TIMER_INTERVAL 50
+#define OBJECT_TIMER_INTERVAL 10
 
 #define MASK_TRANSPARENT RGB(255, 0, 255)
 
@@ -55,9 +55,13 @@ VOID RespawnObject();
 BOOL LoadSprite();
 VOID DrawObject(HWND);
 VOID ProtectBorders(INT, INT, INT, INT, INT, INT);
-VOID MoveObjectMW(WPARAM);
-VOID MoveObjectOnMouseWheel(WPARAM);
 VOID CALLBACK MoveObjectOnTimer(HWND, UINT, UINT_PTR, DWORD);
+VOID MoveObjectOnArrowKey(WPARAM);
+VOID MoveObjectOnMouseWheel(WPARAM);
+VOID MoveRight();
+VOID MoveLeft();
+VOID MoveDown();
+VOID MoveUp();
 
 HMENU hMenu;
 HMENU hObjectTypeSubMenu;
@@ -109,6 +113,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_MOUSEWHEEL:
         MoveObjectOnMouseWheel(wParam);
+        GetClientRect(hWnd, &wndRect);
+        InvalidateRect(hWnd, &wndRect, TRUE);
+        break;
+    case WM_KEYDOWN:
+        MoveObjectOnArrowKey(wParam);
         GetClientRect(hWnd, &wndRect);
         InvalidateRect(hWnd, &wndRect, TRUE);
         break;
@@ -259,27 +268,6 @@ VOID ProtectBorders(INT xDest, INT yDest, INT widthDest, INT heightDest, INT wid
     }
 }
 
-VOID MoveObjectOnMouseWheel(WPARAM wParam)
-{
-    if (GET_KEYSTATE_WPARAM(wParam) == MK_SHIFT) {
-        if (GET_WHEEL_DELTA_WPARAM(wParam) > 0) {
-            nObjectDirection = MOVE_RIGHT;
-            xObjectOffset += OBJECT_MOVEMENT_STEP;
-        } else {
-            nObjectDirection = MOVE_LEFT;
-            xObjectOffset -= OBJECT_MOVEMENT_STEP;
-        }
-    } else {
-        if (GET_WHEEL_DELTA_WPARAM(wParam) > 0) {
-            nObjectDirection = MOVE_DOWN;
-            yObjectOffset += OBJECT_MOVEMENT_STEP;
-        } else {
-            nObjectDirection = MOVE_UP;
-            yObjectOffset -= OBJECT_MOVEMENT_STEP;
-        }
-    }
-}
-
 VOID CALLBACK MoveObjectOnTimer(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
     switch (nObjectDirection) {
@@ -300,4 +288,63 @@ VOID CALLBACK MoveObjectOnTimer(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dw
     RECT wndRect;
     GetClientRect(hWnd, &wndRect);
     InvalidateRect(hWnd, &wndRect, TRUE);
+}
+
+VOID MoveObjectOnArrowKey(WPARAM wParam) 
+{
+    switch (wParam) {
+    case VK_RIGHT:
+        MoveRight();
+        break;
+    case VK_LEFT:
+        MoveLeft();
+        break;
+    case VK_DOWN:
+        MoveDown();
+        break;
+    case VK_UP:
+        MoveUp();
+        break;
+    }
+}
+
+VOID MoveObjectOnMouseWheel(WPARAM wParam)
+{
+    if (GET_KEYSTATE_WPARAM(wParam) == MK_SHIFT) {
+        if (GET_WHEEL_DELTA_WPARAM(wParam) > 0) {
+            MoveRight();
+        } else {
+            MoveLeft();
+        }
+    } else {
+        if (GET_WHEEL_DELTA_WPARAM(wParam) > 0) {
+            MoveDown();
+        } else {
+            MoveUp();
+        }
+    }
+}
+
+VOID MoveRight()
+{
+    nObjectDirection = MOVE_RIGHT;
+    xObjectOffset += OBJECT_MOVEMENT_STEP;
+}
+
+VOID MoveLeft()
+{
+    nObjectDirection = MOVE_LEFT;
+    xObjectOffset -= OBJECT_MOVEMENT_STEP;
+}
+
+VOID MoveDown()
+{
+    nObjectDirection = MOVE_DOWN;
+    yObjectOffset += OBJECT_MOVEMENT_STEP;
+}
+
+VOID MoveUp()
+{
+    nObjectDirection = MOVE_UP;
+    yObjectOffset -= OBJECT_MOVEMENT_STEP;
 }
