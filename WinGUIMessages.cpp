@@ -99,7 +99,7 @@ INT CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         DispatchMessage(&msg);
     }
 
-    return 0;
+    return msg.wParam;
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -138,17 +138,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             RespawnObject();
             break;
         case IDM_HELP:
-            MessageBox(NULL, TEXT_HELP, HELP_MENU_ITEM_TITLE, MB_OK);
+            MessageBox(hWnd, TEXT_HELP, HELP_MENU_ITEM_TITLE, MB_OK);
             break;
         case IDM_AUTHOR:
-            MessageBox(NULL, TEXT_ABOUT_AUTHOR, AUTHOR_MENU_ITEM_TITLE, MB_OK);
+            MessageBox(hWnd, TEXT_ABOUT_AUTHOR, AUTHOR_MENU_ITEM_TITLE, MB_OK);
             break;
         }
         break;
     case WM_CREATE:
         if (!LoadSprite()) {
-            MessageBox(NULL, E_IMAGE_NOT_LOADED, ERROR_CAPTION, MB_OK);
-            PostQuitMessage(0);
+            MessageBox(hWnd, E_IMAGE_NOT_LOADED, ERROR_CAPTION, MB_OK);
+            PostQuitMessage(1);
         }
         AddMenu(hWnd);
         SetTimer(hWnd, IDT_SPRITE_TIMER, OBJECT_TIMER_INTERVAL, MoveObjectOnTimer);
@@ -233,8 +233,7 @@ VOID DrawObject(HWND hWnd)
         DeleteObject(hBr);
         SelectObject(hWndDc, hOldPn);
         DeleteObject(hPn);
-    }
-    else {
+    } else {
         GetObject(hBitmap, sizeof(BITMAP), &bmp);
         xDest = ((widthWnd - bmp.bmWidth) / 2) + xObjectOffset;
         yDest = ((heightWnd - bmp.bmHeight) / 2) + yObjectOffset;
