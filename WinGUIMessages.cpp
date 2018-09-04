@@ -3,8 +3,8 @@
 #define E_IMAGE_NOT_LOADED L"Can't load image"
 #define ERROR_CAPTION L"Error"
 
-#define WINDOW_CLASS_NAME L"WinGUIEventsMainWindow"
-#define WINDOW_TITLE L"Windows GUI Events Lab"
+#define WINDOW_CLASS_NAME L"WinGUIMessagesMainWindow"
+#define WINDOW_TITLE L"Windows GUI Messages Lab"
 #define DEFAULT_WINDOW_WIDTH 1000
 #define DEFAULT_WINDOW_HEIGHT 500
 #define MIN_WINDOW_WIDTH 400
@@ -24,7 +24,7 @@
 #define ELLIPSE_MENU_ITEM_TITLE L"Ellipse"
 #define SPRITE_MENU_ITEM_TITLE L"Custom sprite"
 
-#define TEXT_HELP L"No help here right now"
+#define TEXT_HELP L"Use MOUSE WHEEL and SHIFT to move object.\r\nObject type can be changed in menu."
 #define TEXT_ABOUT_AUTHOR L"Arseni Rynkevich\r\nStudent group ¹651003\r\nhttps://github.com/NRGb3nder"
 
 #define SPRITE_PATH L"sprite.bmp"
