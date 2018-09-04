@@ -53,11 +53,11 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 VOID AddMenu(HWND);
 VOID RespawnObject();
 BOOL LoadSprite();
-VOID DrawSprite(HWND);
+VOID DrawObject(HWND);
 VOID ProtectBorders(INT, INT, INT, INT, INT, INT);
-VOID MoveSpriteMW(WPARAM);
-VOID MoveSpriteOnMouseWheel(WPARAM);
-VOID CALLBACK MoveSpriteOnTimer(HWND, UINT, UINT_PTR, DWORD);
+VOID MoveObjectMW(WPARAM);
+VOID MoveObjectOnMouseWheel(WPARAM);
+VOID CALLBACK MoveObjectOnTimer(HWND, UINT, UINT_PTR, DWORD);
 
 HMENU hMenu;
 HMENU hObjectTypeSubMenu;
@@ -105,10 +105,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message) {
     case WM_PAINT:
-        DrawSprite(hWnd);
+        DrawObject(hWnd);
         break;
     case WM_MOUSEWHEEL:
-        MoveSpriteOnMouseWheel(wParam);
+        MoveObjectOnMouseWheel(wParam);
         GetClientRect(hWnd, &wndRect);
         InvalidateRect(hWnd, &wndRect, TRUE);
         break;
@@ -142,7 +142,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
         }
         AddMenu(hWnd);
-        SetTimer(hWnd, IDT_SPRITE_TIMER, OBJECT_TIMER_INTERVAL, MoveSpriteOnTimer);
+        SetTimer(hWnd, IDT_SPRITE_TIMER, OBJECT_TIMER_INTERVAL, MoveObjectOnTimer);
         break;
     case WM_DESTROY:
         KillTimer(hWnd, IDT_SPRITE_TIMER);
@@ -185,7 +185,7 @@ BOOL LoadSprite()
     return (hBitmap = (HBITMAP)LoadImage(NULL, SPRITE_PATH, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE)) ? TRUE : FALSE;
 }
 
-VOID DrawSprite(HWND hWnd)
+VOID DrawObject(HWND hWnd)
 {
     PAINTSTRUCT ps;
     HDC hWndDc;
@@ -259,7 +259,7 @@ VOID ProtectBorders(INT xDest, INT yDest, INT widthDest, INT heightDest, INT wid
     }
 }
 
-VOID MoveSpriteOnMouseWheel(WPARAM wParam)
+VOID MoveObjectOnMouseWheel(WPARAM wParam)
 {
     if (GET_KEYSTATE_WPARAM(wParam) == MK_SHIFT) {
         if (GET_WHEEL_DELTA_WPARAM(wParam) > 0) {
@@ -280,7 +280,7 @@ VOID MoveSpriteOnMouseWheel(WPARAM wParam)
     }
 }
 
-VOID CALLBACK MoveSpriteOnTimer(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+VOID CALLBACK MoveObjectOnTimer(HWND hWnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 {
     switch (nObjectDirection) {
     case MOVE_UP:
